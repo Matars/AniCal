@@ -1,5 +1,7 @@
 const JIKAN_API = "https://api.jikan.moe/v4";
 const DAYS_OF_WEEK = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+const CACHE_TTL_HOURS = 6;
+const CACHE_TTL_MS = CACHE_TTL_HOURS * 60 * 60 * 1000;
 
 let isAnimeMode = true;
 let showAllBookmarks = false;
@@ -9,19 +11,89 @@ let bookmarks = new Set();
 
 // Calendar state
 let scheduleData = {};       // { monday: [...], tuesday: [...], ... }
+let scheduleFetchStatus = {}; // { monday: true/false, ... }
 let calMonth = new Date().getMonth();
 let calYear  = new Date().getFullYear();
 
+function getStorageArea(areaName) {
+  if (typeof browser !== "undefined" && browser.storage?.[areaName]) {
+    return browser.storage[areaName];
+  }
+  return chrome.storage[areaName];
+}
+
+function storageGet(areaName, key) {
+  const area = getStorageArea(areaName);
+  if (typeof browser !== "undefined" && area.get && area.get.length <= 1) {
+    return area.get(key);
+  }
+  return new Promise((resolve) => area.get(key, (result) => resolve(result || {})));
+}
+
+function storageSet(areaName, value) {
+  const area = getStorageArea(areaName);
+  if (typeof browser !== "undefined" && area.set && area.set.length <= 1) {
+    return area.set(value);
+  }
+  return new Promise((resolve) => area.set(value, () => resolve()));
+}
+
+function cacheKey(endpoint) {
+  return `cache:${endpoint}`;
+}
+
+async function getCachedPayload(endpoint) {
+  const key = cacheKey(endpoint);
+  const result = await storageGet("local", key);
+  return result[key] || null;
+}
+
+async function setCachedPayload(endpoint, payload) {
+  const key = cacheKey(endpoint);
+  await storageSet("local", {
+    [key]: {
+      payload,
+      fetchedAt: Date.now(),
+    },
+  });
+}
+
 // ── API ──────────────────────────────────────────────
 
-async function fetchJikanData(endpoint) {
-  const response = await fetch(`${JIKAN_API}${endpoint}`);
-  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-  return await response.json();
+async function fetchJikanData(endpoint, options = {}) {
+  const {
+    cacheTtlMs = 0,
+    useStaleOnError = true,
+  } = options;
+
+  let cached = null;
+
+  if (cacheTtlMs > 0) {
+    cached = await getCachedPayload(endpoint);
+    if (cached && Date.now() - cached.fetchedAt < cacheTtlMs) {
+      return cached.payload;
+    }
+  }
+
+  try {
+    const response = await fetch(`${JIKAN_API}${endpoint}`);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+    const payload = await response.json();
+    if (cacheTtlMs > 0) {
+      await setCachedPayload(endpoint, payload);
+    }
+    return payload;
+  } catch (error) {
+    if (useStaleOnError && cached?.payload) {
+      return cached.payload;
+    }
+    throw error;
+  }
 }
 
 async function fetchCurrentSeason() {
-  const data = await fetchJikanData("/seasons/now");
+  const data = await fetchJikanData("/seasons/now", { cacheTtlMs: CACHE_TTL_MS });
   const results = data.data.slice(0, 10).map((item) => ({
     id: item.mal_id, title: item.title,
     image: item.images.jpg.image_url, info: item.synopsis, type: "anime",
@@ -31,7 +103,7 @@ async function fetchCurrentSeason() {
 }
 
 async function fetchTopManga() {
-  const data = await fetchJikanData("/top/manga");
+  const data = await fetchJikanData("/top/manga", { cacheTtlMs: CACHE_TTL_MS });
   const results = data.data.slice(0, 10).map((item) => ({
     id: item.mal_id, title: item.title,
     image: item.images.jpg.image_url, info: item.synopsis, type: "manga",
@@ -41,28 +113,53 @@ async function fetchTopManga() {
 }
 
 async function fetchSchedule(day) {
-  const data = await fetchJikanData(`/schedules?filter=${day}`);
-  const results = data.data.slice(0, 10).map((item) => ({
-    id: item.mal_id, title: item.title,
-    image: item.images.jpg.image_url, info: item.synopsis, type: "anime",
-    score: item.score || 0,
-  }));
-  return results.sort((a, b) => b.score - a.score);
+  return await fetchSchedulePages(day, 10);
+}
+
+async function fetchSchedulePages(day, maxItems = Infinity) {
+  const allItems = [];
+  let page = 1;
+  let hasNext = true;
+
+  while (hasNext && allItems.length < maxItems && page <= 6) {
+    const data = await fetchJikanData(
+      `/schedules?filter=${day}&page=${page}&limit=25`,
+      { cacheTtlMs: CACHE_TTL_MS }
+    );
+    const pageItems = data.data
+      .filter((item) => item.images?.jpg?.image_url)
+      .map((item) => ({
+      id: item.mal_id,
+      title: item.title,
+      image: item.images.jpg.image_url,
+      info: item.synopsis,
+      type: "anime",
+      score: item.score || 0,
+    }));
+
+    allItems.push(...pageItems);
+    hasNext = Boolean(data.pagination?.has_next_page);
+    page++;
+
+    if (hasNext && allItems.length < maxItems) {
+      await new Promise((r) => setTimeout(r, 220));
+    }
+  }
+
+  const deduped = Array.from(new Map(allItems.map((item) => [item.id, item])).values());
+  return deduped.sort((a, b) => b.score - a.score).slice(0, maxItems);
 }
 
 // Fetch all 7 days for calendar (sequential to respect rate limits)
 async function fetchAllSchedules() {
   for (const day of DAYS_OF_WEEK) {
-    if (scheduleData[day]) continue;
+    if (scheduleFetchStatus[day]) continue;
     try {
-      const data = await fetchJikanData(`/schedules?filter=${day}`);
-      scheduleData[day] = data.data.map((item) => ({
-        id: item.mal_id, title: item.title,
-        image: item.images.jpg.image_url, info: item.synopsis, type: "anime",
-        score: item.score || 0,
-      })).sort((a, b) => b.score - a.score);
+      scheduleData[day] = await fetchSchedulePages(day, 60);
+      scheduleFetchStatus[day] = true;
     } catch (e) {
       scheduleData[day] = [];
+      scheduleFetchStatus[day] = false;
     }
     await new Promise((r) => setTimeout(r, 380)); // ~3 req/sec rate limit
   }
@@ -96,7 +193,7 @@ function toggleBookmark(item) {
   } else {
     bookmarks.add(item.id);
   }
-  chrome.storage.sync.set({ bookmarks: Array.from(bookmarks) });
+  storageSet("sync", { bookmarks: Array.from(bookmarks) });
   updateDisplay();
 }
 
@@ -333,7 +430,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const bookmarksSection   = document.querySelector(".bookmarks");
   const content            = document.querySelector(".content");
 
-  chrome.storage.sync.get(["bookmarks"], (result) => {
+  storageGet("sync", ["bookmarks"]).then((result) => {
     bookmarks = new Set(result.bookmarks || []);
     updateDisplay();
   });
