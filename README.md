@@ -1,6 +1,6 @@
 # AniCal
 
-![AniCal Banner](media/AkMboS8.png)
+<img src="media/AkMboS8.png" alt="AniCal Banner" width="50%" />
 
 A simple Chrome extension to track anime and manga releases.
 
