@@ -11,13 +11,7 @@ A simple Chrome extension to track anime and manga releases.
 - Bookmark your favorite shows
 - Quick info modal with description and score
 
-## Tech
-
-- HTML
-- CSS
-- JavaScript
-- Chrome Extension Manifest V3
-- Jikan API
+**Note**: This extension has been submitted to the Firefox Add-ons Store and the Chrome Web Store and is currently awaiting review. Once approved, you'll be able to install it directly from the store without needing to sideload.
 
 ## Run Locally
 
