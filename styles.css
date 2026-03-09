@@ -1,0 +1,794 @@
+:root {
+  --paper:  #f0ede6;
+  --panel:  #ffffff;
+  --ink:    #0d0d0d;
+  --gray:   #888;
+  --red:    #c8001a;
+  --border: 2px solid var(--ink);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 560px;
+  height: 680px;
+  font-family: 'Barlow Condensed', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--ink); }
+* { scrollbar-width: thin; scrollbar-color: var(--ink) transparent; }
+
+/* ── Layout ── */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* ── Header ── */
+header {
+  background: var(--ink);
+  padding: 10px 16px 10px;
+  flex-shrink: 0;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title-main {
+  font-family: 'Dela Gothic One', sans-serif;
+  font-size: 26px;
+  color: var(--paper);
+  line-height: 1;
+  letter-spacing: 1px;
+}
+
+.title-sub {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+/* ── Bookmark Header Button ── */
+.bookmark-btn {
+  position: relative;
+  background: transparent;
+  border: 2px solid rgba(240, 237, 230, 0.4);
+  color: var(--paper);
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.bookmark-btn svg { width: 16px; height: 16px; }
+
+.bookmark-btn:hover {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--paper);
+}
+
+.bookmark-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+.bookmark-count.visible { display: flex; }
+
+/* ── View Tabs ── */
+.view-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.view-tab {
+  flex: 1;
+  background: transparent;
+  border: 1px solid rgba(240, 237, 230, 0.25);
+  color: var(--gray);
+  padding: 5px 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.view-tab.active {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--paper);
+}
+
+.view-tab:hover:not(.active) {
+  border-color: rgba(240, 237, 230, 0.6);
+  color: rgba(240, 237, 230, 0.7);
+}
+
+/* ── Anime/Manga Toggle ── */
+.toggle-container {
+  display: flex;
+  justify-content: center;
+}
+
+.toggle {
+  display: inline-flex;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid rgba(240, 237, 230, 0.3);
+  background: transparent;
+}
+
+.toggle-option {
+  padding: 5px 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--gray);
+  z-index: 1;
+  transition: color 0.2s;
+  user-select: none;
+}
+
+.toggle-option:first-child { color: var(--paper); }
+.toggle.manga .toggle-option:first-child { color: var(--gray); }
+.toggle.manga .toggle-option:last-child  { color: var(--paper); }
+
+.toggle-slider {
+  position: absolute;
+  top: 0; left: 0;
+  width: 50%; height: 100%;
+  background: rgba(240, 237, 230, 0.15);
+  transition: transform 0.25s ease;
+  z-index: 0;
+}
+
+.toggle.manga .toggle-slider { transform: translateX(100%); }
+
+/* ── Main ── */
+main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Feed View ── */
+.content {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px 16px 32px;
+  transition: margin-right 0.3s ease;
+}
+
+.content.active { display: block; }
+
+.section { margin-bottom: 22px; }
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 3px solid var(--ink);
+}
+
+.section-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
+.section--today .section-tag { background: var(--red); }
+
+h2 {
+  font-family: 'Dela Gothic One', sans-serif;
+  font-size: 18px;
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: 0.5px;
+}
+
+/* ── Scroll Container ── */
+.scroll-container {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 6px;
+}
+
+/* ── Entry Cards ── */
+.entry {
+  flex: 0 0 160px;
+  width: 160px;
+  position: relative;
+  cursor: pointer;
+  border: var(--border);
+  background: var(--panel);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.entry:hover {
+  box-shadow: 4px 4px 0 var(--ink);
+  transform: translate(-2px, -2px);
+  z-index: 5;
+}
+
+.entry img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+  border-bottom: var(--border);
+}
+
+.entry-title {
+  padding: 6px 8px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  min-height: 40px;
+}
+
+.entry-buttons {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.entry:hover .entry-buttons { opacity: 1; }
+
+.entry-button {
+  flex: 1;
+  background: rgba(13, 13, 13, 0.88);
+  color: var(--paper);
+  border: none;
+  border-bottom: var(--border);
+  height: 30px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.entry-button:first-child { border-right: 1px solid rgba(240,237,230,0.2); }
+.entry-button:hover { background: var(--paper); color: var(--ink); }
+.entry-button.bookmarked { color: var(--red); }
+
+/* ── Score Badge (entry cards) ── */
+.entry-score {
+  position: absolute;
+  bottom: 42px;
+  right: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  line-height: 1;
+  z-index: 4;
+}
+
+/* ── Loading ── */
+.loading-wheel {
+  width: 32px; height: 32px;
+  border: 3px solid rgba(13,13,13,0.12);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 20px auto;
+  flex: none;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.scroll-container p, .bookmarks-list p {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray);
+  letter-spacing: 0.5px;
+  padding: 16px 4px;
+  flex: none;
+}
+
+/* ── Calendar View ── */
+.cal-view {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cal-view.active { display: flex; }
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 2px solid var(--ink);
+  background: var(--paper);
+  flex-shrink: 0;
+}
+
+.cal-month-title {
+  font-family: 'Dela Gothic One', sans-serif;
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: var(--ink);
+}
+
+.cal-nav-btn {
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  width: 26px; height: 26px;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.cal-nav-btn:hover { background: var(--red); }
+
+/* Day-of-week labels */
+.cal-day-labels {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 2px solid var(--ink);
+  background: var(--paper);
+  flex-shrink: 0;
+}
+
+.cal-day-labels span {
+  text-align: center;
+  padding: 5px 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--gray);
+  border-right: 1px solid rgba(13,13,13,0.1);
+}
+
+.cal-day-labels span:last-child { border-right: none; }
+
+/* Calendar grid */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-left: 2px solid var(--ink);
+  border-top: 2px solid var(--ink);
+  flex-shrink: 0;
+  flex-grow: 0;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.cal-day {
+  border-right: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  height: 46px;
+  padding: 5px 6px 4px;
+  cursor: pointer;
+  position: relative;
+  background: var(--paper);
+  transition: background 0.1s;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.cal-day:hover,
+.cal-day--active {
+  background: var(--ink);
+}
+
+.cal-day:hover .cal-day-num,
+.cal-day--active .cal-day-num {
+  color: var(--paper);
+}
+
+.cal-day:hover .cal-dot,
+.cal-day--active .cal-dot {
+  background: var(--paper);
+}
+
+.cal-day--empty {
+  background: rgba(13,13,13,0.03);
+  cursor: default;
+  pointer-events: none;
+}
+
+.cal-day--today {
+  background: var(--ink);
+}
+
+.cal-day--today .cal-day-num {
+  color: var(--paper);
+}
+
+.cal-day--today .cal-dot { background: var(--red); }
+
+.cal-day-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.cal-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--red);
+  flex-shrink: 0;
+}
+
+/* Release panel */
+.cal-release-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 3px solid var(--ink);
+  overflow: hidden;
+}
+
+.cal-release-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 16px;
+  border-bottom: 2px solid var(--ink);
+  background: var(--ink);
+  flex-shrink: 0;
+}
+
+#calDayLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--paper);
+}
+
+.cal-release-count {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--gray);
+}
+
+.cal-release-scroll {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 10px 14px;
+  align-items: center;
+  background: var(--paper);
+}
+
+.cal-placeholder {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray);
+  letter-spacing: 1px;
+  align-self: center;
+  flex: none;
+  padding: 0 !important;
+}
+
+/* Calendar release cards (compact) */
+.cal-release-card {
+  flex: 0 0 82px;
+  width: 82px;
+  cursor: pointer;
+  border: 2px solid var(--ink);
+  background: var(--panel);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.cal-release-card:hover {
+  box-shadow: 3px 3px 0 var(--ink);
+  transform: translate(-1px, -1px);
+}
+
+.cal-release-img-wrap {
+  position: relative;
+}
+
+.cal-release-card img {
+  width: 100%;
+  height: 112px;
+  object-fit: cover;
+  display: block;
+  border-bottom: 1px solid var(--ink);
+}
+
+.cal-release-score {
+  position: absolute;
+  bottom: 1px;
+  right: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 4px;
+  line-height: 1;
+}
+
+.cal-release-card span {
+  display: block;
+  padding: 4px 5px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  min-height: 28px;
+  color: var(--ink);
+}
+
+/* Calendar loading */
+.cal-loading {
+  width: 28px; height: 28px;
+  border: 3px solid rgba(13,13,13,0.12);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: auto;
+  flex: none;
+}
+
+/* ── Bookmarks Sidebar ── */
+.bookmarks {
+  position: absolute;
+  top: 0; right: -290px;
+  width: 290px; height: 100%;
+  background: var(--panel);
+  border-left: 3px solid var(--ink);
+  overflow-y: auto;
+  transition: right 0.3s ease;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+
+.bookmarks.open { right: 0; }
+
+.bookmarks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px 10px;
+  border-bottom: 3px solid var(--ink);
+  background: var(--ink);
+  flex-shrink: 0;
+}
+
+.bookmarks-header h2 {
+  font-family: 'Dela Gothic One', sans-serif;
+  font-size: 18px;
+  color: var(--paper);
+  letter-spacing: 1px;
+}
+
+.close-btn {
+  background: transparent;
+  border: 2px solid rgba(240,237,230,0.4);
+  color: var(--paper);
+  width: 26px; height: 26px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.close-btn:hover { background: var(--paper); color: var(--ink); }
+
+.bookmarks-list {
+  flex: 1;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.bookmarks-list .entry { flex: none; width: 100%; }
+.bookmarks-list .entry img { height: 150px; }
+
+.show-all-btn {
+  flex-shrink: 0;
+  margin: 0 10px 10px;
+  padding: 9px;
+  background: transparent;
+  border: var(--border);
+  color: var(--ink);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.show-all-btn:hover { background: var(--ink); color: var(--paper); }
+
+/* ── Modal ── */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0; z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.active { display: flex; }
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 13, 13, 0.75);
+}
+
+.modal-content {
+  position: relative;
+  background: var(--panel);
+  border: 3px solid var(--ink);
+  width: 88%;
+  max-width: 460px;
+  max-height: 84%;
+  overflow-y: auto;
+  z-index: 1;
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+.modal-close {
+  position: absolute;
+  top: 0; right: 0;
+  background: var(--ink);
+  border: none;
+  color: var(--paper);
+  width: 34px; height: 34px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.modal-close:hover { background: var(--red); }
+
+#modalContent { padding: 18px; }
+
+#modalContent h2 {
+  font-family: 'Dela Gothic One', sans-serif;
+  font-size: 20px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  padding-right: 34px;
+  border-bottom: 3px solid var(--ink);
+  line-height: 1.2;
+}
+
+#modalContent img {
+  width: 100%;
+  max-width: 180px;
+  height: auto;
+  display: block;
+  border: var(--border);
+  float: left;
+  margin: 0 14px 10px 0;
+}
+
+#modalContent p {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+#modalContent .modal-type {
+  display: inline-block;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 3px 8px;
+  clear: both;
+}
+
+#modalContent .modal-score {
+  display: inline-block;
+  background: var(--red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  margin-left: 6px;
+}
+
+#modalContent::after { content: ''; display: block; clear: both; }

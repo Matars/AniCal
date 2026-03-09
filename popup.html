@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AniCal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <div class="brand">
+                    <span class="title-main">ANICAL</span>
+                    <span class="title-sub">Release Calendar</span>
+                </div>
+                <button id="toggleBookmarks" class="bookmark-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <span class="bookmark-count"></span>
+                </button>
+            </div>
+            <div class="view-tabs">
+                <button class="view-tab active" id="feedTab">FEED</button>
+                <button class="view-tab" id="calTab">CALENDAR</button>
+            </div>
+            <div class="toggle-container" id="modeToggleContainer">
+                <div id="modeToggle" class="toggle">
+                    <span class="toggle-option" data-mode="anime">ANIME</span>
+                    <span class="toggle-option" data-mode="manga">MANGA</span>
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Feed View -->
+            <div class="content active" id="feedView">
+                <div id="todayReleases" class="section section--today">
+                    <div class="section-header">
+                        <span class="section-tag">TODAY</span>
+                        <h2>Airing Now</h2>
+                    </div>
+                    <div id="todayReleasesList" class="scroll-container">
+                        <div class="loading-wheel"></div>
+                    </div>
+                </div>
+
+                <div id="tomorrowReleases" class="section">
+                    <div class="section-header">
+                        <span class="section-tag">TOMORROW</span>
+                        <h2>Up Next</h2>
+                    </div>
+                    <div id="tomorrowReleasesList" class="scroll-container">
+                        <div class="loading-wheel"></div>
+                    </div>
+                </div>
+
+                <div id="currentSeason" class="section">
+                    <div class="section-header">
+                        <span class="section-tag">SEASON</span>
+                        <h2>Currently Airing</h2>
+                    </div>
+                    <div id="currentSeasonList" class="scroll-container">
+                        <div class="loading-wheel"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar View -->
+            <div class="cal-view" id="calendarView">
+                <div class="cal-nav">
+                    <button id="calPrev" class="cal-nav-btn">&#9664;</button>
+                    <span id="calMonthYear" class="cal-month-title"></span>
+                    <button id="calNext" class="cal-nav-btn">&#9654;</button>
+                </div>
+                <div class="cal-day-labels">
+                    <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span>
+                    <span>THU</span><span>FRI</span><span>SAT</span>
+                </div>
+                <div class="cal-grid" id="calGrid"></div>
+                <div class="cal-release-panel">
+                    <div class="cal-release-header">
+                        <span id="calDayLabel">HOVER A DAY</span>
+                        <span id="calReleaseCount" class="cal-release-count"></span>
+                    </div>
+                    <div class="cal-release-scroll" id="calReleaseList">
+                        <p class="cal-placeholder">Hover over any day to see scheduled releases</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bookmarks Sidebar -->
+            <div class="bookmarks">
+                <div class="bookmarks-header">
+                    <h2>SAVED</h2>
+                    <button id="closeBookmarks" class="close-btn">✕</button>
+                </div>
+                <div id="bookmarksList" class="bookmarks-list"></div>
+                <button id="showAllBookmarks" class="show-all-btn">Show All</button>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button class="modal-close">✕</button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
